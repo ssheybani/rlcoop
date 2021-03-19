@@ -1,2 +1,7 @@
 # rlcoop
- RL Physical Cooperation Package
+ Cooperative Tracking with RL Agents 
+
+Requirements:
+- Numpy, Scipy, Matplotlib, Pandas
+- PyTorch
+- OpenAI gym
