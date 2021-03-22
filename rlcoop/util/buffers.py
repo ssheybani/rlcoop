@@ -7,8 +7,13 @@ import random
 from collections import namedtuple, deque
 import numpy as np
 
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
+# Transition = namedtuple('Transition',
+#                         ('state', 'action', 'next_state', 'reward'))
+
+import rlcoop
+from rlcoop import Transition
+# from .. import Transition
+
 
 class CyclicBuffer(object):
     # Adopted from https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html

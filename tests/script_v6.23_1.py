@@ -8,20 +8,13 @@ import importlib
 import argparse
 import functools
 
-# Import custom scripts
-import sys,os, inspect
-SCRIPT_DIR = os.path.realpath(os.path.dirname(inspect.getfile(inspect.currentframe())))
-PARENT_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, '..'))
-sys.path.append(os.path.join(PARENT_PATH,'configs'))
-sys.path.append(os.path.join(PARENT_PATH,'agents'))
-sys.path.append(os.path.join(PARENT_PATH,'algos'))
-sys.path.append(os.path.join(PARENT_PATH,'util'))
-sys.path.append(os.path.join(PARENT_PATH,'envs'))
 
-from algos import torch_trainer
-from envs import env_track_dyadic
-from util import buffers, nn_models 
-from agents import rl_agent, benchmark_agents, train_agents
+import context
+from context import rlcoop
+from rlcoop.algos import torch_trainer
+from rlcoop.envs import env_track_dyadic
+from rlcoop.util import buffers, nn_models 
+from rlcoop.agents import rl_agent, benchmark_agents, train_agents
 
 import random
 
@@ -31,7 +24,7 @@ import torch
 from torch import nn, optim
 
 
-from configs.fixed_exp_constants import * 
+from fixed_exp_constants import * 
 
 #---------- Parse the arguments
 parser = argparse.ArgumentParser(description='RL on TrackSlider Experiment')

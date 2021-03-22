@@ -4,18 +4,19 @@
 import sys, os, inspect
 import importlib, time
 
-SCRIPT_DIR = os.path.realpath(os.path.dirname(inspect.getfile(inspect.currentframe())))
-PARENT_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, '..'))
+# SCRIPT_DIR = os.path.realpath(os.path.dirname(inspect.getfile(inspect.currentframe())))
+# PARENT_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, '..'))
 # sys.path.append(os.path.join(PARENT_PATH,'configs'))
 # sys.path.append(os.path.join(PARENT_PATH,'agents'))
 # sys.path.append(os.path.join(PARENT_PATH,'algos'))
-sys.path.append(os.path.join(PARENT_PATH,'util'))
+# sys.path.append(os.path.join(PARENT_PATH,'util'))
 # sys.path.append(os.path.join(PARENT_PATH,'envs'))
 
-default_config = os.path.join(PARENT_PATH,'configs/env_old_config.ini')
+# default_config = os.path.join(PARENT_PATH,'configs/env_old_config.ini')
 # sys.path.append(os.path.join(PARENT_PATH,'util')
 
-from util import helper_funcs, trajectory_tools
+import rlcoop
+from rlcoop.util import helper_funcs, trajectory_tools
 
 import configparser
 import numpy as np

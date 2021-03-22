@@ -1,23 +1,27 @@
 from copy import deepcopy
 import sys,os, inspect
-SCRIPT_DIR = os.path.realpath(os.path.dirname(inspect.getfile(inspect.currentframe())))
-PARENT_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, '..'))
-# sys.path.append(os.path.join(PARENT_PATH,'configs'))
-# sys.path.append(os.path.join(PARENT_PATH,'agents'))
-# sys.path.append(os.path.join(PARENT_PATH,'algos'))
-sys.path.append(os.path.join(PARENT_PATH,'util'))
-# sys.path.append(os.path.join(PARENT_PATH,'envs'))
+# SCRIPT_DIR = os.path.realpath(os.path.dirname(inspect.getfile(inspect.currentframe())))
+# PARENT_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, '..'))
+# # sys.path.append(os.path.join(PARENT_PATH,'configs'))
+# # sys.path.append(os.path.join(PARENT_PATH,'agents'))
+# # sys.path.append(os.path.join(PARENT_PATH,'algos'))
+# sys.path.append(os.path.join(PARENT_PATH,'util'))
+# # sys.path.append(os.path.join(PARENT_PATH,'envs'))
+import rlcoop
+from rlcoop.util import helper_funcs, trajectory_tools
 
-from util import buffers
+from rlcoop.util import buffers
+from rlcoop import Transition
+
 import numpy as np
 import scipy
 from numpy import asarray as narr
 import torch
 from torch import FloatTensor as tarr
 
-from collections import namedtuple
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
+# from collections import namedtuple
+# Transition = namedtuple('Transition',
+#                         ('state', 'action', 'next_state', 'reward'))
 
 class MCPPOTrainer():
 
