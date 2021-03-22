@@ -4,17 +4,6 @@
 import sys, os, inspect
 import importlib, time
 
-# SCRIPT_DIR = os.path.realpath(os.path.dirname(inspect.getfile(inspect.currentframe())))
-# PARENT_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, '..'))
-# sys.path.append(os.path.join(PARENT_PATH,'configs'))
-# sys.path.append(os.path.join(PARENT_PATH,'agents'))
-# sys.path.append(os.path.join(PARENT_PATH,'algos'))
-# sys.path.append(os.path.join(PARENT_PATH,'util'))
-# sys.path.append(os.path.join(PARENT_PATH,'envs'))
-
-# default_config = os.path.join(PARENT_PATH,'configs/env_old_config.ini')
-# sys.path.append(os.path.join(PARENT_PATH,'util')
-
 import rlcoop
 from rlcoop.util import helper_funcs, trajectory_tools
 
@@ -31,7 +20,7 @@ class PhysicalTrackDyad_v3():
 #                       'f_bound', 'max_ref', 'max_freq')
 
     # internal methods
-    def __init__(self, env_id=None, seed_=None, config_file=None, **kwargs):
+    def __init__(self, config_file, env_id=None, seed_=None, **kwargs):
         # Returns an instantiated dyadic game environment. 
         # Given that the environment is dynamic, the current time step can be queried
         # from variable "step_i".
@@ -39,7 +28,7 @@ class PhysicalTrackDyad_v3():
         # env_id can be either 'soft' or 'hard'.
         # 'soft' corresponds to soft force constraints, i.e. the task doesn't end 
         # (the carried object does not break) if normal force range is violated.
-        # 'hard' is the other case.
+        # 'hard' is the other case. => NOT IMPLEMENTED.
         
         
         # There are 2 mechanisms to set/modify env parameters: config file, kwargs.
@@ -50,7 +39,7 @@ class PhysicalTrackDyad_v3():
         
         # Read params from config file.
         Config = configparser.ConfigParser()
-        Config.read(default_config) # read the default config file.
+        Config.read(config_file) # read the config file.
         
         for section in Config.sections():
             for key in Config.options(section):
@@ -61,20 +50,6 @@ class PhysicalTrackDyad_v3():
                     except:
                         pass
                     setattr(self, key, val)       
-        
-        if config_file is not None:
-            Config = configparser.ConfigParser()
-            Config.read(config_file) # read the default config file.
-        
-            for section in Config.sections():
-                for key in Config.options(section):
-                    if True: #key in self.allowable_keys:
-                        val = Config.get(section, key)
-                        try:
-                            val = float(val)
-                        except:
-                            pass
-                        setattr(self, key, val)
         
         # Read the kwargs and override params from config file.
         for key in kwargs:

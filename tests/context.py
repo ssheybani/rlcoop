@@ -12,3 +12,6 @@ PARENT_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, '..'))
 sys.path.insert(0, PARENT_PATH)
 
 import rlcoop
+
+DATA_PATH = os.path.join(PARENT_PATH,'data/')
+CONFIG_PATH = os.path.join(PARENT_PATH,'rlcoop','configs/')

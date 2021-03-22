@@ -16,8 +16,8 @@ logger1 = base.Logger()
 logger2 = base.Logger()
 
 force_max=20.; #force_min=-20.
-sigma = 0. #0.3;
-tau = 0.09 #0.05 #
+muscle_sigma = 0. #0.3;
+muscle_tau = 0.09 #0.05 #
 
-muscle1 = base.MuscleModel(sigma, force_max, ts=0.025, tau=tau)
+muscle1 = base.MuscleModel(muscle_sigma, force_max, ts=0.025, tau=muscle_tau)
 muscle2 = deepcopy(muscle1)

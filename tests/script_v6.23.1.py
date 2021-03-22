@@ -7,24 +7,27 @@ import pickle
 import importlib
 import argparse
 import functools
+import sys,os
 
 
 import context
-from context import rlcoop
+from context import rlcoop, DATA_PATH, CONFIG_PATH
 from rlcoop.algos import torch_trainer
 from rlcoop.envs import env_track_dyadic
 from rlcoop.util import buffers, nn_models 
 from rlcoop.agents import rl_agent, benchmark_agents, train_agents
 
+from tests import Hyperparams
+
 import random
 
-import sys, time, datetime
+import time, datetime
 from copy import deepcopy
 import torch
 from torch import nn, optim
 
-
 from fixed_exp_constants import * 
+
 
 #---------- Parse the arguments
 parser = argparse.ArgumentParser(description='RL on TrackSlider Experiment')
@@ -72,14 +75,15 @@ rec_points = [1, 200, 500, 1000, 1500, 2000, 3000, 5000, 10000]
 exp_name = args.exp_name
 if exp_name is None:
     exp_name = parser.prog
+
 data_subdir = args.data_subdir+'cp'+str(c_positivef1)+'cn'+str(c_negativef1)+'/'
 # data_subsubdir = 
 n_episodes = args.n_ep
 
 seed = 1234
 max_freq, max_freq_dyadic = 0.5, 0.3
-env_v3 = env_track_dyadic.PhysicalTrackDyad_v3(seed_=seed,
-                                               config_file=parent_path+'configs/env_v3_config.ini',
+env_v3 = env_track_dyadic.PhysicalTrackDyad_v3(config_file=CONFIG_PATH+'/env_v3_config.ini',
+                                               seed_=seed,
                                      max_freq=max_freq_dyadic)
 env = env_v3#env_dyadic_wa #env_single_spring_wa
 
@@ -278,9 +282,8 @@ while try_num<=3:
     c_effort2 = 0. #-.25
     c_negativef2 = None
 
-    hyperparams = None
-    # BMHyperparams(batch_size, learning_rate, 
-                    buffer_max_size, experience_sift_tol, target_int, gamma)
+    hyperparams = Hyperparams(batch_size, lr, 
+                    buffer_max_size, target_int, gamma)
 
     agent1 = agent1cls(
         nn_mod1, buffer1, muscle1, perspective=0, hyperparams=hyperparams, 
@@ -307,7 +310,7 @@ while try_num<=3:
     t0 = time.time()
 
     # Unzip arguments
-    _, _, n_eval = xaxis_params
+#     _, _, n_eval = xaxis_params
 
     n_episodes = n_episodes; n_intervals = int(n_episodes/100)
     int_episodes=int(n_episodes/n_intervals)
@@ -347,11 +350,11 @@ while try_num<=3:
                 x_s, y_s, agent1_s, agent2_s = deepcopy(x), [deepcopy(yp), deepcopy(yc1)], deepcopy(agent1), deepcopy(agent2)
                 agent1_s.buffer = buffers.CyclicBuffer(1); agent2_s.buffer = buffers.CyclicBuffer(1);
                 try:
-                    os.makedirs('data/'+data_subdir)
+                    os.makedirs(DATA_PATH+data_subdir)
                 except FileExistsError:
                     pass
                 fname = exp_name+run_token+'-'+'{:04d}'.format(i*int_episodes+j)
-                pickle.dump((x_s, y_s, agent1_s, agent2_s), open( "data/"+data_subdir+fname, "wb" ) )
+                pickle.dump((x_s, y_s, agent1_s, agent2_s), open( DATA_PATH+data_subdir+fname, "wb" ) )
            
 
         x[i+1] = (i+1)*int_episodes
@@ -382,9 +385,9 @@ else:
     agent1.buffer = buffers.CyclicBuffer(1)
     agent2.buffer = buffers.CyclicBuffer(1)
     try:
-        os.makedirs('data/'+data_subdir)
+        os.makedirs(DATA_PATH+data_subdir)
     except FileExistsError:
         pass
     fname = exp_name+run_token+'-'+'{:04d}'.format(i*int_episodes+j)
-    pickle.dump((x, [yp,yc1], agent1, agent2), open( "data/"+data_subdir+fname, "wb" ) )
+    pickle.dump((x, [yp,yc1], agent1, agent2), open( DATA_PATH+data_subdir+fname, "wb" ) )
     print('______________________________________')

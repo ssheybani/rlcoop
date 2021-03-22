@@ -8,3 +8,9 @@ Dependencies:
 	util is used by: env_track_dyadic, torch_trainer .
 	script files use all modules.
 """
+
+from collections import namedtuple
+
+Hyperparams = namedtuple('Hyperparams',
+                        ('batch_size', 'lr', 'buffer_max_size', 'target_int', 'gamma'))
+
