@@ -75,7 +75,6 @@ rec_points = [1, 200, 500, 1000, 1500, 2000, 3000, 5000, 10000]
 exp_name = args.exp_name
 if exp_name is None:
     exp_name = parser.prog
-
 data_subdir = args.data_subdir+'cp'+str(c_positivef1)+'cn'+str(c_negativef1)+'/'
 # data_subsubdir = 
 n_episodes = args.n_ep
@@ -84,7 +83,7 @@ seed = 1234
 max_freq, max_freq_dyadic = 0.5, 0.3
 env_v3 = env_track_dyadic.PhysicalTrackDyad_v3(config_file=CONFIG_PATH+'/env_v3_config.ini',
                                                seed_=seed,
-                                     max_freq=max_freq_dyadic)
+                                     max_freq=max_freq)
 env = env_v3#env_dyadic_wa #env_single_spring_wa
 
 device = torch.device("cpu")

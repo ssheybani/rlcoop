@@ -123,7 +123,8 @@ class Trajectory():
         traj_specs = []; trajs =[]
         
         if rel_amps is None:
-            rel_amps = [0.3, 0.6, 0.6, 0.4, 0.4]; 
+            rel_amps = [1., 1./2, 1./3, 1./4, 1./5]; 
+#             rel_amps = [0.3, 0.6, 0.6, 0.4, 0.4]; 
         
         amp_sum = np.sum(rel_amps)
         rel_amps = [item/amp_sum for item in rel_amps]
