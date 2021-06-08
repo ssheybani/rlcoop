@@ -136,22 +136,22 @@ class Trajectory():
             # Determine the scaling factor of (the amplitude of) the traj_spec so that they require the same energy
             if fixed_effort is True:
                 sc_fac = self._get_traj_rms(traj_spec, obj_mass, obj_fric)
-                for i in range(len(traj_spec)):
-                    traj_spec[i][0] = traj_spec[i][0]/sc_fac
+                for j in range(len(traj_spec)):
+                    traj_spec[j][0] = traj_spec[j][0]/sc_fac
             else:
                 # Make sure the amplitude of the whole signal remains less than max_amp
                 sum_amp = 0.
-                for i in range(len(traj_spec)):
-                    sum_amp += traj_spec[i][0]
-                for i in range(len(traj_spec)):
-                    traj_spec[i][0]*= max_amp/sum_amp
+                for j in range(len(traj_spec)):
+                    sum_amp += traj_spec[j][0]
+                for j in range(len(traj_spec)):
+                    traj_spec[j][0]*= max_amp/sum_amp
             
             traj_specs.append(traj_spec) 
             time1, traj = self.generate(traj_spec, duration)
             
             traj_dx_spec = traj_spec
             traj = np.expand_dims(traj, axis=0)
-            for i in range(n_deriv):
+            for j in range(n_deriv):
                 traj_dx_spec = self._traj_derivative(traj_dx_spec)
                 _, traj_dx = self.generate(traj_dx_spec, duration)
                 traj = np.concatenate((traj, traj_dx[np.newaxis,:]), axis=0)
@@ -165,7 +165,57 @@ class Trajectory():
         else:
             return time1, trajs
         
-        
+    
+    def generate_sysid_sine_traj(freqs, duration, max_amp=0.45, fixed_effort=True, sys_mass=2.5, sys_fric=1, n_deriv=2, ret_specs=True):
+        # For time step, self.tstep is used.
+        # n_traj: the number of trajectories generated.
+        # max_amp: maximum amplitude of the trajectory.
+        # fixed_effort: If true, normalizes the trajectory such that it requires an f_rms of 1 to track.
+        # n_deriv: the number of the derivatives of the trajectory to be returned as additional time series.
+        # ret_specs: If true, returns the specifications of the sinusoidal conponents used to generate the time series. 
+
+
+        freqs = np.asarray(freqs)
+        traj_specs = []; traj =[] #shall be returned
+
+        rel_amps = 1./freqs
+
+        rel_amp_sum = np.sum(rel_amps)
+        amps = [item*max_amp/rel_amp_sum for item in rel_amps]
+
+        traj_spec = [[freqs[i], amps[i], 2*np.pi*np.random.rand()] for i in range(amps)]
+
+        # Determine the scaling factor of (the amplitude of) the traj_spec so that they require the same energy
+        if fixed_effort is True:
+            sc_fac = self._get_traj_rms(traj_spec, sys_mass, sys_fric)
+            for j in range(len(traj_spec)):
+                traj_spec[j][0] = traj_spec[j][0]/sc_fac
+        else:
+            # Make sure the amplitude of the whole signal remains less than max_amp
+            sum_amp = 0.
+            for j in range(len(traj_spec)):
+                sum_amp += traj_spec[j][0]
+            for j in range(len(traj_spec)):
+                traj_spec[j][0]*= max_amp/sum_amp
+
+        traj_specs.append(traj_spec) 
+        time1, traj = self.generate(traj_spec, duration)
+
+        traj_dx_spec = traj_spec
+        traj = np.expand_dims(traj, axis=0)
+        for j in range(n_deriv):
+            traj_dx_spec = self._traj_derivative(traj_dx_spec)
+            _, traj_dx = self.generate(traj_dx_spec, duration)
+            traj = np.concatenate((traj, traj_dx[np.newaxis,:]), axis=0)
+
+
+        if ret_specs is True:
+            return time1, traj, traj_specs
+        else:
+            return time1, traj
+
+    
+    
 class StepFunction():
     
     def __init__(self, tstep, seed_=None):

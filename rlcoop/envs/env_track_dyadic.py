@@ -12,24 +12,75 @@ import numpy as np
 import gym
 from gym import spaces
 
+
+class PhysicalTrackDyad_v4(TrackerSMD):
+    def __init__(self, config_file, env_id=None, seed_=None, **kwargs):
+        super().__init__(config_file, seed_=seed_, **kwargs)
+        
+        k1, k2 = self.joy1_spring, self.joy2_spring
+        m1, m2, MM = self.joy1_mass, self.joy2_mass, self.obj_mass
+        self.A_mat = np.array([
+            [0., 1., 0., 0., 0., 0.],
+            [-k1/m1, 0., 0., 0., k1/m1, 0.],
+            [0., 0., 0., 1., 0., 0.],
+            [0., 0., -k2/m2, 0., k2/m2, 0.],
+            [0., 0., 0., 0., 0., 1.],
+            [k1/MM, 0., k2/MM, 0., (-k1-k2)/MM, -self.obj_fric/MM]
+            ])
+        
+        self.B_mat = np.array([
+            [0.,0.],
+            [1./m1,0.],
+            [0.,0.],
+            [0.,-1/m2],
+            [0.,0.],
+            [0.,0.]
+            ])
+        self._dynamic_sys = lambda X,U,_: np.matmul(self.A_mat, X)+np.matmul(self.B_mat, U)
+#         self.spring_k = spring_k
+        self.ftr_pos_dict = {'r':0, 'r\'':1, 'r\"':2,
+                'x':3, 'x\'':4, 'x\"':5,
+                'fn1':6, 'fn2':7, 'f1':8, 'f2':9}
+        
+
     
-class PhysicalTrackDyad_v3():
-# With the springs between the object and the controllers
+class TrackerMSD():
+
+    """
+    Tracking game with mass-spring-damper
+    
+    Properties:
+        System dynamics
+            constants for the masses, springs, dampers. A_mat, B_mat.
+        Config related
+            max_freq, force_max, ...
+        Run-related
+            duration, tstep, time1, traj, step_i
+        ftr_pos_dict
+    
+    Methods:
+        
+        Construction
+            __init__
+            reset
+            close
+        
+        Used in Simulation (train_agents.py)
+            step
+                _update_state
+            reward
+            is_terminal
+            
+        render        
+        
+    """
 
 #     allowable_keys = ('obj_mass', 'obj_fric', 'tstep', 'duration', 'failure_error',
 #                       'f_bound', 'max_ref', 'max_freq')
 
     # internal methods
-    def __init__(self, config_file, env_id=None, seed_=None, **kwargs):
-        # Returns an instantiated dyadic game environment. 
-        # Given that the environment is dynamic, the current time step can be queried
-        # from variable "step_i".
-        
-        # env_id can be either 'soft' or 'hard'.
-        # 'soft' corresponds to soft force constraints, i.e. the task doesn't end 
-        # (the carried object does not break) if normal force range is violated.
-        # 'hard' is the other case. => NOT IMPLEMENTED.
-        
+    def __init__(self, config_file, dyadic=False, env_id=None, seed_=None, **kwargs):
+
         
         # There are 2 mechanisms to set/modify env parameters: config file, kwargs.
         # config file is the address to the INI config file.
@@ -88,27 +139,48 @@ class PhysicalTrackDyad_v3():
         self.traj_time, self.traj = None, None
         self._max_episode_steps = int(self.duration/self.tstep)
 
-
+        
         k1, k2 = self.joy1_spring, self.joy2_spring
         m1, m2, MM = self.joy1_mass, self.joy2_mass, self.obj_mass
-        self.A_mat = np.array([
-            [0., 1., 0., 0., 0., 0.],
-            [-k1/m1, 0., 0., 0., k1/m1, 0.],
-            [0., 0., 0., 1., 0., 0.],
-            [0., 0., -k2/m2, 0., k2/m2, 0.],
-            [0., 0., 0., 0., 0., 1.],
-            [k1/MM, 0., k2/MM, 0., (-k1-k2)/MM, -self.obj_fric/MM]
-            ])
         
-        self.B_mat = np.array([
-            [0.,0.],
-            [1./m1,0.],
-            [0.,0.],
-            [0.,-1/m2],
-            [0.,0.],
-            [0.,0.]
-            ])
+        if dyadic:
+            # correct the matrices, based on the new task model. @@@@@@@@@@@@
+            self.A_mat = np.array([
+                [0., 1., 0., 0., 0., 0.],
+                [-k1/m1, 0., 0., 0., k1/m1, 0.],
+                [0., 0., 0., 1., 0., 0.],
+                [0., 0., -k2/m2, 0., k2/m2, 0.],
+                [0., 0., 0., 0., 0., 1.],
+                [k1/MM, 0., k2/MM, 0., (-k1-k2)/MM, -self.obj_fric/MM]
+                ])
 
+            self.B_mat = np.array([
+                [0.,0.],
+                [1./m1,0.],
+                [0.,0.],
+                [0.,-1/m2],
+                [0.,0.],
+                [0.,0.]
+                ])
+        else:
+            # correct the matrices to the single version@@@@@@@@@@@@@
+            self.A_mat = np.array([
+                [0., 1., 0., 0., 0., 0.],
+                [-k1/m1, 0., 0., 0., k1/m1, 0.],
+                [0., 0., 0., 1., 0., 0.],
+                [0., 0., -k2/m2, 0., k2/m2, 0.],
+                [0., 0., 0., 0., 0., 1.],
+                [k1/MM, 0., k2/MM, 0., (-k1-k2)/MM, -self.obj_fric/MM]
+                ])
+
+            self.B_mat = np.array([
+                [0.,0.],
+                [1./m1,0.],
+                [0.,0.],
+                [0.,-1/m2],
+                [0.,0.],
+                [0.,0.]
+                ])
         self._dynamic_sys = lambda X,U,_: np.matmul(self.A_mat, X)+np.matmul(self.B_mat, U)
 #         self.spring_k = spring_k
         self.ftr_pos_dict = {'r':0, 'r\'':1, 'r\"':2,
@@ -125,7 +197,8 @@ class PhysicalTrackDyad_v3():
 #     x,v,a, p1, p2 = self._update_states(f1, f2, t)
     def _update_state(self, f1, f2, t):
         # Updates the dynamic states of the system of joysticks and the object
-        # self.svec: np.array([p1, p1dot, p2, p2dot, x, v])
+        # if dyadic: self.svec: np.array([p1, p1dot, p2, p2dot, x, v])
+        # if single: self.svec: np.array([p1, p1dot, x, v])
         input_vec = np.array([f1,f2])
         
         self.a = self._dynamic_sys(self.svec, input_vec, t)[-1]
@@ -215,11 +288,16 @@ class PhysicalTrackDyad_v3():
         # Update joystick states
         f1, f2 = action[0], action[1]
         
-        p1,p2, x,v,a = self._update_state(f1, f2, t)
+        if dyadic:
+            p1,p2, x,v,a = self._update_state(f1, f2, t)
+            fn2 = 0
+        else:
+            f2=0
+            p1,p2, x,v,a = self._update_state(f1, f2, t)
+            fn2 = self.joy2_spring*(p2-x)
         
         fn1 = -self.joy1_spring*(p1-x)
-        fn2 = self.joy2_spring*(p2-x)
-
+        
         return [r, r_d, r_dd, x, v, a, fn1, fn2, f1, f2], self.reward(r,x), self.done, None
     
     
