@@ -1,6 +1,3 @@
-# This is a slightly modified version of the env_spring
-# intended for the pairs of agents that were pretrained on the env_spring.
-
 import sys, os, inspect
 import importlib, time
 
@@ -13,65 +10,40 @@ import gym
 from gym import spaces
 
 
-class PhysicalTrackDyad_v4(TrackerSMD):
-    def __init__(self, config_file, env_id=None, seed_=None, **kwargs):
-        super().__init__(config_file, seed_=seed_, **kwargs)
-        
-        k1, k2 = self.joy1_spring, self.joy2_spring
-        m1, m2, MM = self.joy1_mass, self.joy2_mass, self.obj_mass
-        self.A_mat = np.array([
-            [0., 1., 0., 0., 0., 0.],
-            [-k1/m1, 0., 0., 0., k1/m1, 0.],
-            [0., 0., 0., 1., 0., 0.],
-            [0., 0., -k2/m2, 0., k2/m2, 0.],
-            [0., 0., 0., 0., 0., 1.],
-            [k1/MM, 0., k2/MM, 0., (-k1-k2)/MM, -self.obj_fric/MM]
-            ])
-        
-        self.B_mat = np.array([
-            [0.,0.],
-            [1./m1,0.],
-            [0.,0.],
-            [0.,-1/m2],
-            [0.,0.],
-            [0.,0.]
-            ])
-        self._dynamic_sys = lambda X,U,_: np.matmul(self.A_mat, X)+np.matmul(self.B_mat, U)
-#         self.spring_k = spring_k
-        self.ftr_pos_dict = {'r':0, 'r\'':1, 'r\"':2,
-                'x':3, 'x\'':4, 'x\"':5,
-                'fn1':6, 'fn2':7, 'f1':8, 'f2':9}
-        
-
-    
-class TrackerMSD():
+class TrackMSD():
 
     """
-    Tracking game with mass-spring-damper
+    Base class for trackings experiments 
     
-    Properties:
-        System dynamics
-            constants for the masses, springs, dampers. A_mat, B_mat.
-        Config related
+    A moving target is to be tracked where the control force is exerted to a 
+    mechanical system of spring-damper-mass.
+    
+    Attributes
+    ----------
+        System dynamics : function handle
+            function receiving X, U and returning X'
+            Or A_mat, B_mat.
+            Or the constants for the masses, springs, dampers. 
+        Config related: float
             max_freq, force_max, ...
-        Run-related
+        Run-related: float
             duration, tstep, time1, traj, step_i
-        ftr_pos_dict
+        ftr_pos_dict: dict
     
-    Methods:
-        
-        Construction
+    Methods
+    ----------        
+        Construction:
             __init__
             reset
             close
         
-        Used in Simulation (train_agents.py)
+        Used in Simulation (train_agents.py):
             step
                 _update_state
             reward
             is_terminal
             
-        render        
+        render
         
     """
 
@@ -131,8 +103,8 @@ class TrackerMSD():
         # Initialize state variables
         self.step_i =0
         self.svec = np.zeros(6, dtype=float)
-        self.p1, self.p2, self.x, self.v = self.svec[0], self.svec[2], self.svec[4], self.svec[5]
-        self.a = 0.
+        # self.p1, self.p2, self.x, self.v = self.svec[0], self.svec[2], self.svec[4], self.svec[5]
+        # self.a = 0.
         # p1, p2: joystic positions; x,v,a: the position (and v,a) of the object
         self.done = False
         self.traj_creator = trajectory_tools.Trajectory(self.tstep, seed_=seed_)
@@ -141,7 +113,7 @@ class TrackerMSD():
 
         
         k1, k2 = self.joy1_spring, self.joy2_spring
-        m1, m2, MM = self.joy1_mass, self.joy2_mass, self.obj_mass
+        # m1, m2, MM = self.joy1_mass, self.joy2_mass, self.obj_mass
         
         if dyadic:
             # correct the matrices, based on the new task model. @@@@@@@@@@@@
@@ -186,6 +158,9 @@ class TrackerMSD():
         self.ftr_pos_dict = {'r':0, 'r\'':1, 'r\"':2,
                 'x':3, 'x\'':4, 'x\"':5,
                 'fn1':6, 'fn2':7, 'f1':8, 'f2':9}
+        self.ftr_pos_dict = {'r':0, 'r\'':1, 'r\"':2,
+                'x':3, 'x\'':4, 'x\"':5,
+                'fn1':6, 'fn2':7, 'f1':8, 'f2':9}
         
     
     def get_time(self):
@@ -201,12 +176,13 @@ class TrackerMSD():
         # if single: self.svec: np.array([p1, p1dot, x, v])
         input_vec = np.array([f1,f2])
         
-        self.a = self._dynamic_sys(self.svec, input_vec, t)[-1]
+        # self.a = self._dynamic_sys(self.svec, input_vec, t)[-1]
         
         self.svec = helper_funcs.rk4_step(self._dynamic_sys, self.svec, input_vec, t, self.tstep)
-        self.x, self.v = self.svec[4], self.svec[5]
+        return self.svec
+        # self.x, self.v = self.svec[4], self.svec[5]
         
-        return self.svec[0], self.svec[2],  self.x, self.v, self.a
+        # return self.svec[0], self.svec[2],  self.x, self.v, self.a
         
 
     def _update_fn(self, f1, f2):
@@ -271,9 +247,22 @@ class TrackerMSD():
         
         
     def step(self, action):
-#         return (reference, state, normal force), reward, done, _
-    # action is a tuple of two forces
-    # Calling step() after the episode is done will return None.
+        """
+        
+        Parameters
+        ----------
+            action : tuple of size 2
+                f1, f2
+
+        Returns
+        -------
+            outcomes: tuple of size 4
+            (reference, state, forces), reward, done, _
+            Calling step() after the episode is done will return None.
+
+        """
+#         return 
+    # 
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
         if self.done is True:
             print('Warning: Episode has ended. Reset the environment!')
@@ -281,24 +270,27 @@ class TrackerMSD():
         
         self.step_i +=1
         t = self.traj_time[self.step_i]
-        r, r_d, r_dd = self.traj[0][self.step_i], self.traj[1][self.step_i], self.traj[2][self.step_i] #Set reference
-        
+        r, r_d, r_dd = self.traj[0][self.step_i], self.traj[1][self.step_i] #Set reference
+        # r_dd = self.traj[2][self.step_i]
         self.done = self.is_terminal(r) # Check if the state is terminal
         
         # Update joystick states
         f1, f2 = action[0], action[1]
         
-        if dyadic:
-            p1,p2, x,v,a = self._update_state(f1, f2, t)
-            fn2 = 0
-        else:
-            f2=0
-            p1,p2, x,v,a = self._update_state(f1, f2, t)
-            fn2 = self.joy2_spring*(p2-x)
+        # if dyadic:
+        #     state_vec = self._update_state(f1, f2, t)
+        #     p1,p2, x,v,a = self._update_state(f1, f2, t)
+        #     fn2 = 0
+        # else:
+        #     f2=0
+        #     p1,p2, x,v,a = self._update_state(f1, f2, t)
+        #     fn2 = self.joy2_spring*(p2-x)
+        state_vec = self._update_state(f1, f2, t)
         
         fn1 = -self.joy1_spring*(p1-x)
+        fn2 = -self.joy2_spring*(p1-x)
         
-        return [r, r_d, r_dd, x, v, a, fn1, fn2, f1, f2], self.reward(r,x), self.done, None
+        return ([r, r_d], state_vec, [fn1, fn2, f1, f2]), self.reward(r,x), self.done, None
     
     
     def render(self):
