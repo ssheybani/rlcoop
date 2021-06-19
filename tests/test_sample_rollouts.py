@@ -37,20 +37,19 @@ for filename in os.listdir(dataset_dir):
             file_eps = pickle.load(f)
             ep_trials += file_eps
 
-ep_trials = np.asarray(ep_trials)
+# ep_trials = np.asarray(ep_trials)
 ts_dict = {'t':0,
             'e1':1, 'e1dot':2, 'fn1':3, 'act1':4, 'f1':5, 
             'e2':6, 'e2dot':7, 'fn2':8, 'act2':9,'f2':10}
-df_ts = pd.DataFrame(
-    ep_trials.reshape(-1,ep_trials.shape[-1]),
-    columns=list(ts_dict))
+
 
 """
-Statistics of each feature
+Sample rollouts
+
+Assuming that ep_trials contains the data that one would usse as a batch, 
+create the rollouts in a form that the policy gradient algorithm with TD(lambda)
+updates can use.
+
 """
-stats = df_ts.describe()
-xtt = helper_funcs.ndrms(df_ts, axis=0)
-# df_tmp = pd.DataFrame(xtt, index=['rms'])
-stats.loc['rms'] = xtt
 
 
