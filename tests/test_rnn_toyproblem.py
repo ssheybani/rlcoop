@@ -75,7 +75,7 @@ class Net_R1L(nn.Module):
 """
 Consider creating a Trajectory Dataset like in the example
 It's an iterable, implementing __iter__, __next__
-Never mind! Don't use GPU at all! We don't have a multilayer CNN.
+Never mind! Don't even bother using a GPU! We don't have a multilayer CNN.
 """
 def create_dataloader_from_ts(input_ts, output_ts, tw):
     """
@@ -188,18 +188,17 @@ n_epoch = 50
 # If the generative process is described by a scalar linear discrete state space model, 
 #      x[t] = alpha x[t-1] + beta u[t], 
 # then the following relationship holds between its time constant and alpha:
-#      tau = -np.log(50)/(4*np.log(alpha))
+#      tau = -np.log(50)/(4*np.log(alpha)) ~= 1/-Ln(alpha)
+# and seq_len = c*int(tau) where c=1 or 2 or 5 at most.
 # To ensure the sequence cover all processes, the largest alpha must be used.
 # Note that because of the log, tau is very sensitive to alpha.
 alpha = 0.9 # In this case, the two hidden processes have alpha=0.7, 0.9. 
 tau = -np.log(50)/(4*np.log(alpha))
 seq_len = 2*int(tau)
 
-
 # seq_gen = lambda ts,i, tau: ts[i-tau:i, ...]
 training_data = create_dataloader_from_ts(scale_r*xdata_in, scale_r*xdata_out, seq_len)
 train_loader = DataLoader(training_data, batch_size=64, shuffle=True)
-
 
 criterion = nn.MSELoss()
 optimizer = optim.Adam(xnet1.parameters(), lr=lr, 
