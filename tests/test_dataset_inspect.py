@@ -49,8 +49,10 @@ df_ts = pd.DataFrame(
 Statistics of each feature
 """
 stats = df_ts.describe()
-xtt = helper_funcs.ndrms(df_ts, axis=0)
+rms = helper_funcs.ndrms(df_ts, axis=0)
+# mean_sq = 
 # df_tmp = pd.DataFrame(xtt, index=['rms'])
-stats.loc['rms'] = xtt
+stats.loc['rms'] = rms
+# stats.loc['mean_sq'] = mean_sq
 
 

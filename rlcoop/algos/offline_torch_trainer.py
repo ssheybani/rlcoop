@@ -229,6 +229,14 @@ class OfflinePGTrainer():
                     loss = (te_output-te_curr_actions)* te_adv_total
                     loss.backward()
                     optim.step()
+                    
+                    
+                    
+                    
+        Implementation 2 with torch dataloader
+            Process each episode into (feature, target, weight) samples.
+            Load them into a dataloader.
+            Train the policy using that.
                                             
         """
         
